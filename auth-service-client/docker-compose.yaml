@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  auth-service-client:
+    image: node:latest
+    container_name: auth-service-client
+    command: npm run dev
+    working_dir: /frontend
+    volumes:
+      - ./frontend:/frontend
+    ports:
+      - 3000:3000
+
+networks:
+  default:
+    external:
+      name: auth-service-network

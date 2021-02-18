@@ -1,0 +1,6 @@
+auth-service-backend/mysql/*
+auth-service-backend/backend/node_modules
+auth-service-backend/backend/vendor
+auth-service-backend/backend/.env
+
+auth-service-client/frontend/node_modules
