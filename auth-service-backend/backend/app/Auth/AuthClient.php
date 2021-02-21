@@ -2,9 +2,8 @@
 
 namespace App\Auth;
 
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Cookie;
+use TokenDeliveryFactory;
 
 /**
  * Handle client authentication
@@ -44,6 +43,25 @@ class AuthClient
     }
 
     /**
+     * Delivery tokens for the client
+     *
+     * @param String $accessToken
+     * @param String $deliveryToken
+     * 
+     * @return void
+     **/
+    private function deliveryTokens($accessToken, $refreshToken)
+    {
+        $deliveryStrategyConfig = config('jwt.token_delivery_strategy');
+
+        $deliveryStrategy = TokenDeliveryFactory::getTokenDeliveryMethod(
+            $deliveryStrategyConfig
+        );
+        
+        $deliveryStrategy->deliveryTokens($accessToken, $refreshToken);
+    }
+
+    /**
      * Set tokens for the given client
      *
      * @param String $type password|refresh_token
@@ -62,33 +80,11 @@ class AuthClient
             return response()->json(['error' => 'Something went wrong'], 500);
         }
         
-        $accessToken = $decodedResponse->access_token;
-        $refreshToken = $decodedResponse->refresh_token;
-
-        if (config('jwt.token_delivery_strategy') == 'cookie') {
-            $this->deliveryCookieTokens($accessToken, $refreshToken);
-        }
+        $this->deliveryTokens($decodedResponse->access_token, $decodedResponse->refresh_token);
 
         return response()->json([
             'access_token_ttl' => now()->addSeconds(config('jwt.access_token_ttl') - 30),
             'refresh_token_ttl' => now()->addSeconds(config('jwt.refresh_token_ttl') - 30) 
         ], 200);
-    }
-
-    /**
-     * Use cookies to return client tokens
-     *
-     * @param String $accessToken
-     * @param String $refreshToken
-     * 
-     * @return void
-     **/
-    private function deliveryCookieTokens($accessToken, $refreshToken)
-    {
-        $accessTokenTTL = config('jwt.access_token_ttl') - 30;
-        $refreshTokenTTL = config('jwt.refresh_token_ttl') - 30;
-
-        Cookie::queue('access_token', $accessToken, $accessTokenTTL / 60);
-        Cookie::queue('refresh_token', $refreshToken, $refreshTokenTTL / 60);
     }
 }
