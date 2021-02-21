@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Auth\AuthClient;
-use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 
